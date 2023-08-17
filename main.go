@@ -35,16 +35,15 @@ func main() {
 		fmt.Printf("解析错误 %s: %s\n", host, err)
 		return
 	}
+	dialer := net.Dialer{}
 
-	dialer := net.Dialer{
-		Control: func(network, address string, c syscall.RawConn) error {
-			return c.Control(func(fd uintptr) {
-				err := syscall.SetsockoptInt(syscall.Handle(int(fd)), syscall.SOL_SOCKET, syscall.SO_SNDBUF, *bufferSizePtr)
-				if err != nil {
-					fmt.Printf("设置发送缓冲区错误: %s\n", err)
-				}
-			})
-		},
+	dialer.Control = func(network, address string, c syscall.RawConn) error {
+		return c.Control(func(fd uintptr) {
+			err := syscall.SetsockoptInt(syscall.Handle(fd), syscall.SOL_SOCKET, syscall.SO_SNDBUF, *bufferSizePtr)
+			if err != nil {
+				fmt.Printf("设置发送缓冲区错误: %s\n", err)
+			}
+		})
 	}
 
 	conn, err := dialer.Dial("ip4:icmp", ipAddr.String())
@@ -121,10 +120,10 @@ func main() {
 func sendICMPPacket(conn net.Conn, pid, seqNum int) error {
 	payload := []byte("PingData")
 	msg := make([]byte, 8+len(payload))
-	msg[0] = 8 // ICMP Echo Request Type
-	msg[1] = 0 // Code
-	msg[2] = 0 // Checksum (set later)
-	msg[3] = 0 // Checksum (set later)
+	msg[0] = 8
+	msg[1] = 0
+	msg[2] = 0
+	msg[3] = 0
 	msg[4] = byte(pid >> 8)
 	msg[5] = byte(pid)
 	msg[6] = byte(seqNum >> 8)

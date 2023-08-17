@@ -5,3 +5,5 @@
 ***利用ICMP协议***
 
 ![img.png](img.png)
+
+- 暂时可能有些问题，win和linux上句柄`syscall.Handle`不同系统上不兼容，导致。把syscall.Handle去掉就行
